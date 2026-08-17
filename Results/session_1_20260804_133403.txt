@@ -1,0 +1,22 @@
+=== Coding Tutor – C/C++ Session Log ===
+Student ID  : 1
+Scenario    : C++ Operator Overloading — Complex Numbers
+Help Level  : 1 – Strict
+Hints Used  : 0
+Final Score : 99/100
+Saved At    : 2026-08-04 13:34:03
+=============================================
+
+[Tutor  ]
+👋 Hello! I'm here to help. Ask me any questions about the task.
+
+[Tutor  ]
+✅ **חלק 1 עבר!** (`Complex class — +, -, ==, abs()`)
+
+עכשיו עובדים על חלק 2: **`Complex — *, +=, unary -`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+
+[Tutor  ]
+✅ **חלק 2 עבר!** (`Complex — *, +=, unary -`)
+
+עכשיו עובדים על חלק 3: **`Complex — operator<<`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+

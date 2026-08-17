@@ -1,0 +1,22 @@
+# --- Core Frameworks ---
+langchain>=0.1.0
+langchain-ollama>=0.2.0
+langgraph>=0.0.20  # For State Management and Workflow
+
+# --- Web & API Implementation ---
+flask>=3.0.0       # Used in current simulation logs [cite: 295, 302]
+fastapi>=0.100.0   # Alternative web framework used in initial builds [cite: 201]
+uvicorn>=0.23.0    # ASGI server for FastAPI
+requests>=2.31.0   # Synchronous HTTP requests [cite: 224, 458]
+
+# --- Asynchronous & Performance ---
+aiohttp>=3.9.0     # Asynchronous HTTP requests [cite: 469, 477]
+aiolimiter>=1.1.0  # Rate limiting for High-Scale scenarios [cite: 469, 479]
+aiocache>=0.12.0   # Caching layer to resolve 429 errors [cite: 478, 480]
+
+# --- UI ---
+streamlit>=1.30.0
+
+# --- Utilities & Security ---
+python-dotenv>=1.0.0
+pydantic>=2.0.0

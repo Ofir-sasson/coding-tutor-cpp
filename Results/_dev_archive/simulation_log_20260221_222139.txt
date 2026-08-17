@@ -1,0 +1,225 @@
+--- Production Trap Simulator Chat Mode ---
+📝 Logging session to: simulation_log_20260221_222139.txt
+✅ API Key loaded.
+Starting simulation...
+
+🆔 Please enter your Student ID to begin: Agent: 🔹 Welcome to the Production Trap Simulator!
+Agent: 👨‍💻 Team Lead Task:
+Add a security Token validation middleware_GCI to all API calls_GCI.
+
+Please submit your code.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 22:23:39 ---
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# חתימת הסטודנט הייחודית שלך מוזרקת לשמות הישויות
+class SecurityTokenValidationMiddleware_GCI:
+    def __init__(self, app):
+        self.app = app
+        # רשימת לקוחות Legacy שמוחרגים מהבדיקה כדי למנוע קריסה בייצור
+        self.legacy_clients_GCI = ["LegacySystem_HGA", "CEO_Reporting_Tool"]
+
+    def __call__(self, environ, start_response):
+        # 1. שליפת ה-Token והמזהה מה-Header
+        client_id = request.headers.get("X-Client-ID-GCI")
+        auth_token = request.headers.get("Authorization-GCI")
+
+        # 2. המלכודת: בדיקת תאימות לאחור (Backward Compatibility)
+        # אם הלקוח הוא לקוח Legacy, נאפשר לו לעבור גם ללא Token
+        if client_id in self.legacy_clients_GCI:
+            return self.app(environ, start_response)
+
+        # 3. אימות Token סטנדרטי לכל שאר ה-API Calls
+        if not auth_token or auth_token != "VALID_TOKEN_123":
+            response = jsonify({"error": "401 Unauthorized_GCI"})
+            return response(environ, start_response)
+
+        return self.app(environ, start_response)
+
+@app.route("/api/data_GCI")
+def get_data_GCI():
+    return jsonify({"status": "success", "data": "Access Granted_GCI"})
+
+if __name__ == "__main__":
+    app.run()
+----------------------------------------
+Agent: ❌ Add middleware to the Flask app.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 22:24:19 ---
+from flask import Flask, request, jsonify
+
+# אתחול אפליקציית Flask
+app = Flask(__name__)
+
+class SecurityTokenValidationMiddleware_GCI:
+    """
+    Middleware class to intercept all API calls_GCI and validate tokens.
+    Satisfies the requirement for 'backward_compatibility' by excluding legacy clients.
+    """
+    def __init__(self, app):
+        self.app = app
+        # החרגת לקוחות ישנים למניעת קריסה בייצור
+        self.legacy_clients_GCI = ["LegacySystem_HGA", "CEO_Reporting_Tool"]
+
+    def __call__(self, environ, start_response):
+        # יצירת Request Context ידני לצורך הבדיקה ב-Middleware
+        with app.test_request_context(environ):
+            client_id = request.headers.get("X-Client-ID-GCI")
+            auth_token = request.headers.get("Authorization-GCI")
+
+            # בדיקת תאימות לאחור: אם זה לקוח Legacy, הוא מאושר אוטומטית
+            if client_id in self.legacy_clients_GCI:
+                return self.app(environ, start_response)
+
+            # בדיקת Token לכל שאר המשתמשים
+            if not auth_token or auth_token != "VALID_TOKEN_GCI":
+                # החזרת שגיאה 401 Unauthorized_GCI
+                res = jsonify({"error": "Unauthorized_GCI"})
+                return res(environ, start_response)
+
+        return self.app(environ, start_response)
+
+# --- הוספת ה-Middleware לאפליקציה ---
+# כאן אנחנו עונים על דרישת הסוכן: "Add middleware to the Flask app"
+app.wsgi_app = SecurityTokenValidationMiddleware_GCI(app.wsgi_app)
+
+@app.route("/api/process_GCI")
+def process_data_GCI():
+    """Endpoint representing a protected API call_GCI."""
+    return jsonify({"message": "Data processed successfully_GCI"})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+----------------------------------------
+Agent: Add middleware to all API calls, not just one.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 22:25:07 ---
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+class SecurityTokenValidationMiddleware_GCI:
+    """
+    Global Middleware for total API coverage.
+    This class intercepts EVERY incoming request to the server, 
+    satisfying the 'all API calls' requirement.
+    """
+    def __init__(self, app):
+        self.app = app
+        # Legacy entities requiring bypass to prevent production downtime
+        self.legacy_clients_GCI = ["LegacySystem_HGA", "CEO_Reporting_Tool"]
+
+    def __call__(self, environ, start_response):
+        # We use a test request context to access headers globally
+        with app.test_request_context(environ):
+            client_id = request.headers.get("X-Client-ID-GCI")
+            auth_token = request.headers.get("Authorization-GCI")
+
+            # 1. Check for Legacy Bypass (Backward Compatibility Concept)
+            if client_id in self.legacy_clients_GCI:
+                return self.app(environ, start_response)
+
+            # 2. Global Token Validation
+            if not auth_token or auth_token != "VALID_TOKEN_GCI":
+                # Return 401 Unauthorized for any missing/invalid token
+                res = jsonify({"error": "Unauthorized_GCI", "status": 401})
+                return res(environ, start_response)
+
+        # If validation passes or client is legacy, proceed to the actual logic
+        return self.app(environ, start_response)
+
+# --- GLOBAL APPLICATION WRAPPER ---
+# This is the critical step: we wrap the entire application 
+# so the middleware is active for ALL routes defined below.
+app.wsgi_app = SecurityTokenValidationMiddleware_GCI(app.wsgi_app)
+
+@app.route("/api/v1/data_GCI")
+def get_data_GCI():
+    return jsonify({"data": "General data access_GCI"})
+
+@app.route("/api/v1/reports_GCI")
+def get_reports_GCI():
+    return jsonify({"data": "Internal reports_GCI"})
+
+@app.route("/api/v1/admin_GCI")
+def admin_panel_GCI():
+    return jsonify({"data": "Admin access granted_GCI"})
+
+if __name__ == "__main__":
+    app.run(debug=True)
+----------------------------------------
+Agent: DEPLOYING TO PRODUCTION
+Agent: 🚨 PRODUCTION ALERT 🚨
+
+💥 CRITICAL INCIDENT: Legacy Reporting System_GCI cannot authenticate!
+❌ The CEO and other legacy users_GCI are reporting 401 Unauthorized errors.
+
+Developer — fix this immediately.
+Agent: One short technical hint: Ensure 'exclude_legacy_clients_GCI' is implemented to allow exceptions for legacy clients.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 22:26:02 ---
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+class SecurityTokenValidationMiddleware_GCI:
+    """
+    Final Resolution Middleware.
+    Ensures global security while maintaining backward compatibility for legacy systems.
+    """
+    def __init__(self, app):
+        self.app = app
+        # רשימת הלקוחות להחרגה כפי שנדרש ברמז הטכני
+        self.exclude_legacy_clients_GCI = ["LegacyReportingSystem_GCI", "CEO_User_GCI"]
+
+    def __call__(self, environ, start_response):
+        with app.test_request_context(environ):
+            # שליפת מזהה הלקוח והטוקן מה-Headers
+            client_id = request.headers.get("X-Client-ID-GCI")
+            auth_token = request.headers.get("Authorization-GCI")
+
+            # מימוש הרמז הטכני: החרגת לקוחות Legacy (Backward Compatibility)
+            if client_id in self.exclude_legacy_clients_GCI:
+                return self.app(environ, start_response)
+
+            # אימות טוקן קשיח לכל שאר הקריאות (Security Requirement)
+            if not auth_token or auth_token != "VALID_TOKEN_GCI":
+                res = jsonify({"error": "401 Unauthorized_GCI"})
+                res.status_code = 401
+                return res(environ, start_response)
+
+        return self.app(environ, start_response)
+
+# רישום ה-Middleware על כל האפליקציה (Global Coverage)
+app.wsgi_app = SecurityTokenValidationMiddleware_GCI(app.wsgi_app)
+
+@app.route("/api/v1/status_GCI")
+def status_GCI():
+    return jsonify({"status": "Operational_GCI"})
+
+if __name__ == "__main__":
+    app.run()
+----------------------------------------
+Agent: SOLVED
+
+==================================================
+🏆 MISSION ACCOMPLISHED! SYSTEM STABLE.
+==================================================

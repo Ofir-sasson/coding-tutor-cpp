@@ -1,0 +1,124 @@
+{
+  "12": {
+    "student_id": "12",
+    "scenario_id": "string_utils",
+    "scenario_name": "String Utilities Without <string.h>",
+    "help_level": 1,
+    "hint_count": 0,
+    "score": null,
+    "start_time": "2026-06-29T13:30:31",
+    "last_active": "2026-06-29T13:31:59",
+    "status": "active"
+  },
+  "13": {
+    "student_id": "13",
+    "scenario_id": "dynamic_array",
+    "scenario_name": "Dynamic Array in C",
+    "help_level": 3,
+    "hint_count": 0,
+    "score": null,
+    "start_time": "2026-06-29T13:30:18",
+    "last_active": "2026-06-29T13:30:18",
+    "status": "active"
+  },
+  "1": {
+    "student_id": "1",
+    "completed_scenarios": [
+      "strings_no_lib",
+      "cpp_operator_overload"
+    ],
+    "current": {
+      "scenario_id": "file_io",
+      "scenario_name": "File I/O in C",
+      "help_level": 1,
+      "hint_count": 0,
+      "score": null,
+      "start_time": "2026-08-04T13:58:46",
+      "last_active": "2026-08-04T13:58:46",
+      "status": "active"
+    },
+    "history": [
+      {
+        "scenario_id": "strings_no_lib",
+        "scenario_name": "String Utilities Without <string.h>",
+        "help_level": 3,
+        "hint_count": 6,
+        "score": 94,
+        "start_time": "2026-07-14T10:36:13",
+        "last_active": "2026-07-14T11:08:49",
+        "status": "done",
+        "completed_at": "2026-07-14T11:14:54"
+      },
+      {
+        "scenario_id": "cpp_operator_overload",
+        "scenario_name": "C++ Operator Overloading — Complex Numbers",
+        "help_level": 1,
+        "hint_count": 0,
+        "score": 99,
+        "start_time": "2026-08-04T13:28:19",
+        "last_active": "2026-08-04T13:32:45",
+        "status": "done",
+        "completed_at": "2026-08-04T13:34:03"
+      }
+    ]
+  },
+  "2": {
+    "student_id": "2",
+    "completed_scenarios": [],
+    "current": {
+      "scenario_id": "cpp_class_inherit",
+      "scenario_name": "C++ Classes and Inheritance",
+      "help_level": 1,
+      "hint_count": 0,
+      "score": null,
+      "start_time": "2026-08-16T16:33:43",
+      "last_active": "2026-08-16T16:33:43",
+      "status": "active"
+    },
+    "history": []
+  },
+  "3": {
+    "student_id": "3",
+    "completed_scenarios": [],
+    "current": {
+      "scenario_id": "dynamic_2d_array",
+      "scenario_name": "Dynamic 2D Array in C",
+      "help_level": 1,
+      "hint_count": 0,
+      "score": null,
+      "start_time": "2026-07-14T10:01:24",
+      "last_active": "2026-07-14T10:01:24",
+      "status": "active"
+    },
+    "history": []
+  },
+  "341128221": {
+    "student_id": "341128221",
+    "completed_scenarios": [
+      "cpp_smart_ptrs"
+    ],
+    "current": {
+      "scenario_id": "pointer_arithmetic",
+      "scenario_name": "Pointer Arithmetic in C",
+      "help_level": 1,
+      "hint_count": 0,
+      "score": null,
+      "start_time": "2026-07-23T11:12:17",
+      "last_active": "2026-07-23T11:12:17",
+      "status": "active"
+    },
+    "history": [
+      {
+        "scenario_id": "cpp_smart_ptrs",
+        "scenario_name": "C++ Smart Pointers",
+        "help_level": 1,
+        "hint_count": 1,
+        "score": 50,
+        "start_time": "2026-07-23T10:57:33",
+        "last_active": "2026-07-23T11:02:07",
+        "status": "done",
+        "completed_at": "2026-07-23T11:08:01"
+      }
+    ]
+  }
+}

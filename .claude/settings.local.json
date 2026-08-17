@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(/usr/bin/python3 -m pip install python-dotenv langchain langchain-ollama langgraph)",
+      "Bash(curl -s http://localhost:11434/api/tags)",
+      "Bash(curl -s http://localhost:11434/api/generate -d '{\"model\":\"qwen2.5-coder\",\"prompt\":\"Say hello\",\"stream\":false}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Response time OK, response:', d['response'][:50]\\)\")",
+      "Bash(python3 -c \"import sys,json; models=json.load\\(sys.stdin\\)['models']; [print\\(m['name'], m['details']['parameter_size']\\) for m in models]\")",
+      "Bash(/usr/bin/python3 -m pip install streamlit)",
+      "Bash(/usr/bin/python3 -c \"import student_app; import teacher_app\")"
+    ]
+  }
+}

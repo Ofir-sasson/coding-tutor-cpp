@@ -1,0 +1,115 @@
+=== Coding Tutor – C/C++ Session Log ===
+Student ID  : 1
+Scenario    : String Utilities Without <string.h>
+Help Level  : 3 – Supported
+Hints Used  : 6
+Final Score : 94/100
+Saved At    : 2026-07-14 11:14:54
+=============================================
+
+[Tutor  ]
+👋 Hello! I'm here to help. Ask me any questions about the task.
+
+[Tutor  ]
+✅ **חלק 1 עבר!** (`my_strlen`)
+
+עכשיו עובדים על חלק 2: **`my_strcpy`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+
+[Student]
+why my function failed?
+
+[Tutor  ]
+Can you describe what went wrong with your `my_strcpy` function? What did it do differently from the expected behavior?
+
+[Tutor  ]
+✅ **חלק 2 עבר!** (`my_strcpy`)
+
+עכשיו עובדים על חלק 3: **`my_strrev`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+
+[Tutor  ]
+ℹ️ **רמת העזרה עלתה לרמה 2 – Guided.**  
+רמזים קונספטואליים – ללא קוד
+
+[Student]
+how to do the two pointers technic?
+
+[Tutor  ]
+The Two Pointers technique involves using two iterators that move through a data structure, such as an array or linked list, in order to solve problems efficiently. One pointer typically starts at the beginning (left) and the other at the end (right). They then move towards each other based on conditions until they meet or cross. This method is useful for finding pairs, sums, or elements that satisfy certain criteria within a sorted or unsorted array.
+
+[Student]
+how do i do it?
+
+[Tutor  ]
+To use the Two Pointers technique, start by initializing two pointers at the beginning and end of your data structure. Then, move them towards each other based on the problem's requirements until they meet or cross. Adjust the pointers according to conditions specific to your problem, such as finding a pair with a certain sum or identifying elements that satisfy a given condition.
+
+[Student]
+why me tests failed?
+
+[Student]
+FAIL: hello -> olleh FAIL: single char unchanged FAIL: ab -> ba FAIL: abcde -> edcba
+
+[Tutor  ]
+It seems like the `my_strrev` function is not correctly reversing the strings as expected. Double-check your implementation to ensure that you are correctly swapping characters at the two pointers and moving them towards each other until they meet or cross. Make sure that your loop condition and pointer updates are correct.
+
+[Student]
+void my_strrev(char* s){ int i = 0; int j = my_strlen(s); while( i <= j){ char temp = s[j]; s[j] = s[i]; s[i] = temp; i++; j--; } }
+
+[Tutor  ]
+Your function is almost correct, but there are a couple of issues. First, the length of the string should be calculated before entering the loop to avoid undefined behavior when accessing `s[j]`. Second, the loop condition should be `i < j` instead of `i <= j` to ensure that the middle character (if the string length is odd) remains in place. Lastly, make sure `my_strlen` returns the correct length of the string without including the null terminator.
+
+[Tutor  ]
+✅ **חלק 3 עבר!** (`my_strrev`)
+
+עכשיו עובדים על חלק 4: **`my_strcmp`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+
+[Tutor  ]
+ℹ️ **רמת העזרה עלתה לרמה 3 – Supported.**  
+הסבר מלא עם דוגמאות קוד
+
+[Student]
+how to implement my_strcmp
+
+[Tutor  ]
+To implement `my_strcmp`, you need to compare two strings character by character until you find a difference or reach the end of one of the strings. Here's how you can do it:
+
+1. **Initialize Pointers**: Start with two pointers, one for each string (`a` and `b`).
+2. **Compare Characters**: Loop through both strings, comparing characters at corresponding positions.
+3. **Return Result**:
+   - If a difference is found, return the result of subtracting the ASCII values of the differing characters.
+   - If the end of either string is reached without finding a difference, return 0 if both pointers have reached the null terminator (`'\0'`), indicating that the strings are equal. Otherwise, return the difference based on which pointer has reached the null terminator.
+
+Here's an example implementation:
+
+```c
+int my_strcmp(const char* a, const char* b) {
+    // Loop through both strings until a difference is found or one string ends
+    while (*a != '\0' && *b != '\0') {
+        if (*a != *b) {
+            return (*a - *b);
+        }
+        a++;
+        b++;
+    }
+
+    // If we reach here, either both strings ended at the same time (equal)
+    // or one string ended before the other
+    return (*a - *b);
+}
+```
+
+### Explanation:
+- **`while (*a != '\0' && *b != '\0')`**: This loop continues as long as neither pointer has reached the null terminator.
+- **`if (*a != *b)`**: If characters at the current positions of `a` and `b` are different, return their difference. This will be negative if `*a < *b`, positive if `*a > *b`.
+- **`a++` and `b++`**: Move both pointers to the next character.
+- **After the loop**: If the loop exits because one string ended before the other, return the difference between the characters at the current positions of `a` and `b`. This will be zero if both strings are equal up to the point where one ends.
+
+This implementation ensures that the function compares strings lexicographically without using any `<string.h>` functions.
+
+[Tutor  ]
+✅ **חלק 4 עבר!** (`my_strcmp`)
+
+עכשיו עובדים על חלק 5: **`my_strdup`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!
+
+[Student]
+and how do i do this my_strdup(const char* s)?
+

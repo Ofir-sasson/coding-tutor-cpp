@@ -1,0 +1,262 @@
+--- Production Trap Simulator Chat Mode ---
+📝 Logging session to: simulation_log_20260215_014322.txt
+✅ API Key loaded.
+Starting simulation...
+
+🆔 Please enter your Student ID to begin: 🎲 Generated scenario for 123123123: {'id': 'legacy_token', 'name': 'Token Verification vs Legacy_DDB', 'dev_requirement': 'Add a security Token verification middleware_DDB to all API calls.', 'prod_issue': '💥 CRITICAL INCIDENT: Legacy Reporting System_DDB cannot authenticate!\n❌ The CEO and other legacy users_DDB are reporting 401 Unauthorized errors.', 'required_fix_concept': 'backward_compatibility', 'validation_criteria': 'Middleware_DDB must enforce token verification but allow exceptions for legacy clients.', 'requirements': ['validate_authorization_header_DDB', 'exclude_legacy_clients_DDB', 'return_401_on_missing_token_DDB'], 'risk_level': 'high'}
+Agent: 🔹 Welcome to the Production Trap Simulator!
+Agent: 👨‍💻 Team Lead Task:
+Add a security Token verification middleware_DDB to all API calls.
+
+Please submit your code.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 01:44:45 ---
+from fastapi import FastAPI, Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+# ==========================
+# Security Token Middleware
+# ==========================
+class TokenVerificationMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, valid_tokens: list):
+        super().__init__(app)
+        self.valid_tokens = valid_tokens  # רשימת tokenים תקינים
+
+    async def dispatch(self, request: Request, call_next):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+        # נניח שהפורמט הוא "Bearer <token>"
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid Authorization header format")
+
+        token = parts[1]
+        if token not in self.valid_tokens:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        # אם הכל תקין → ממשיכים
+        response = await call_next(request)
+        return response
+
+# ==========================
+# Example: Configure valid tokens
+# ==========================
+VALID_TOKENS = ["abc123", "def456"]  # החלף ברשימה אמיתית או DB
+
+# הוספת ה-middleware לאפליקציה
+app.add_middleware(TokenVerificationMiddleware, valid_tokens=VALID_TOKENS)
+
+# ==========================
+# Example endpoint
+# ==========================
+@app.get("/secure-data")
+def secure_data():
+    return {"message": "You have access to secure data!"}
+----------------------------------------
+Agent: ❌ Rename middleware to middleware_DDB.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 01:45:20 ---
+from fastapi import FastAPI, Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+# ==========================
+# Security Token Middleware_DDB
+# ==========================
+class TokenVerificationMiddleware_DDB(BaseHTTPMiddleware):
+    def __init__(self, app, valid_tokens: list):
+        super().__init__(app)
+        self.valid_tokens = valid_tokens  # רשימת tokenים תקינים
+
+    async def dispatch(self, request: Request, call_next):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+        # נניח שהפורמט הוא "Bearer <token>"
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid Authorization header format")
+
+        token = parts[1]
+        if token not in self.valid_tokens:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        # אם הכל תקין → ממשיכים
+        response = await call_next(request)
+        return response
+
+# ==========================
+# Example: Configure valid tokens
+# ==========================
+VALID_TOKENS = ["abc123", "def456"]  # החלף ברשימה אמיתית או DB
+
+# הוספת ה-middleware_DDB לאפליקציה
+app.add_middleware(TokenVerificationMiddleware_DDB, valid_tokens=VALID_TOKENS)
+
+# ==========================
+# Example endpoint
+# ==========================
+@app.get("/secure-data")
+def secure_data():
+    return {"message": "You have access to secure data!"}
+----------------------------------------
+Agent: ❌ Add TokenVerificationMiddleware_DDB to all API routes.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 01:46:45 ---
+from fastapi import FastAPI, Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+# ==========================
+# Security Token Middleware_DDB
+# ==========================
+class TokenVerificationMiddleware_DDB(BaseHTTPMiddleware):
+    def __init__(self, app, valid_tokens: list):
+        super().__init__(app)
+        self.valid_tokens = valid_tokens
+
+    async def dispatch(self, request: Request, call_next):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid Authorization header format")
+
+        token = parts[1]
+        if token not in self.valid_tokens:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        return await call_next(request)
+
+# ==========================
+# Configure valid tokens
+# ==========================
+VALID_TOKENS = ["abc123", "def456"]  # החלף ברשימה אמיתית או DB
+
+# הוספת ה-middleware_DDB לאפליקציה → מחיל על כל ה‑API
+app.add_middleware(TokenVerificationMiddleware_DDB, valid_tokens=VALID_TOKENS)
+
+# ==========================
+# דוגמאות ל‑API routes
+# ==========================
+@app.get("/endpoint1")
+def endpoint1():
+    return {"message": "Access granted to endpoint1"}
+
+@app.post("/endpoint2")
+def endpoint2():
+    return {"message": "Access granted to endpoint2"}
+----------------------------------------
+Agent: DEPLOYING TO PRODUCTION
+Agent: 🚨 PRODUCTION ALERT 🚨
+
+💥 CRITICAL INCIDENT: Legacy Reporting System_DDB cannot authenticate!
+❌ The CEO and other legacy users_DDB are reporting 401 Unauthorized errors.
+
+Developer — fix this immediately.
+
+📝 You (Dev) - Type/Paste your code below.
+   (Type 'DONE' on a new line and press Enter to submit)
+   ---------------------------------------------------
+
+--- User Submission at 01:48:12 ---
+from fastapi import FastAPI, Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
+app = FastAPI()
+
+# ==========================
+# Security Token Middleware_DDB with Legacy Support
+# ==========================
+class TokenVerificationMiddleware_DDB(BaseHTTPMiddleware):
+    def __init__(self, app, valid_tokens: list, legacy_paths: list = None, legacy_tokens: list = None):
+        super().__init__(app)
+        self.valid_tokens = valid_tokens
+        self.legacy_paths = legacy_paths or []       # list of paths that skip strict token check
+        self.legacy_tokens = legacy_tokens or []     # list of tokens allowed for legacy users
+
+    async def dispatch(self, request: Request, call_next):
+        # --------------------------
+        # Skip strict token check for legacy paths
+        # --------------------------
+        if any(request.url.path.startswith(path) for path in self.legacy_paths):
+            # Optionally allow token-less access or legacy token
+            auth_header = request.headers.get("Authorization")
+            if auth_header:
+                parts = auth_header.split()
+                if len(parts) == 2 and parts[0].lower() == "bearer":
+                    token = parts[1]
+                    if token in self.valid_tokens + self.legacy_tokens:
+                        return await call_next(request)
+            # Allow access to legacy paths even without token
+            return await call_next(request)
+
+        # --------------------------
+        # Normal token validation
+        # --------------------------
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid Authorization header format")
+
+        token = parts[1]
+        if token not in self.valid_tokens:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        return await call_next(request)
+
+
+# ==========================
+# Configure tokens
+# ==========================
+VALID_TOKENS = ["abc123", "def456"]          # tokens חדשים ל-API החדש
+LEGACY_TOKENS = ["legacy_ceo_token"]        # token ישן ל-Legacy users
+LEGACY_PATHS = ["/legacy", "/reports"]      # מסלולים שמגיעים מ-Legacy system
+
+# הוספת ה-middleware_DDB לאפליקציה
+app.add_middleware(
+    TokenVerificationMiddleware_DDB,
+    valid_tokens=VALID_TOKENS,
+    legacy_tokens=LEGACY_TOKENS,
+    legacy_paths=LEGACY_PATHS
+)
+
+# ==========================
+# דוגמאות ל‑API routes
+# ==========================
+@app.get("/secure-endpoint")
+def secure_endpoint():
+    return {"message": "Access granted to secure endpoint"}
+
+@app.get("/legacy/report")
+def legacy_report():
+    return {"message": "Legacy reporting access granted"}
+----------------------------------------
+
+==================================================
+🏆 MISSION ACCOMPLISHED! SYSTEM STABLE.
+==================================================

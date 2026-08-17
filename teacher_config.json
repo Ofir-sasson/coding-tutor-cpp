@@ -1,0 +1,9 @@
+{
+  "help_level": 1,
+  "teacher_password": "teacher123",
+  "student_overrides": {
+    "13": 3,
+    "12": 1,
+    "1": 1
+  }
+}

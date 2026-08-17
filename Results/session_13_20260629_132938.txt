@@ -1,0 +1,161 @@
+=== Coding Tutor – C/C++ Session Log ===
+Student ID  : 13
+Scenario    : Dynamic Array in C
+Help Level  : 1 – Strict
+Hints Used  : 0
+Final Score : 100/100
+Saved At    : 2026-06-29 13:29:38
+=============================================
+
+[Tutor  ]
+📚 Your Task:
+
+**Task: Implement a Dynamic Array (like std::vector) in C**
+
+Use this struct:
+```c
+typedef struct {
+    int* data;
+    int size;
+    int capacity;
+} DynArray;
+```
+
+Implement:
+1. `DynArray* create_array(int initial_capacity)` — malloc the struct and the data buffer
+2. `void push_back(DynArray* arr, int value)` — append element; **double capacity with realloc** when full
+3. `int get(DynArray* arr, int index)` — return element; print error and return -1 if out of bounds
+4. `void free_array(DynArray* arr)` — free the data buffer AND the struct itself
+5. Write `main()` that pushes 10 elements and prints them, showing capacity doubling.
+
+Ask me anything to get help, or type SUBMIT when you're ready to submit your code.
+
+[Student]
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int* data;
+    int size;
+    int capacity;
+} DynArray;
+
+DynArray* create_array(int initial_capacity) {
+    DynArray* arr = malloc(sizeof(DynArray));
+
+    if (arr == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
+    arr->data = malloc(initial_capacity * sizeof(int));
+
+    if (arr->data == NULL) {
+        printf("Memory allocation failed\n");
+        free(arr);
+        return NULL;
+    }
+
+    arr->size = 0;
+    arr->capacity = initial_capacity;
+
+    return arr;
+}
+
+void push_back(DynArray* arr, int value) {
+    if (arr->size == arr->capacity) {
+        int new_capacity = arr->capacity * 2;
+        int* new_data = realloc(arr->data, new_capacity * sizeof(int));
+
+        if (new_data == NULL) {
+            printf("Realloc failed\n");
+            return;
+        }
+
+        arr->data = new_data;
+        arr->capacity = new_capacity;
+
+        printf("Capacity doubled to: %d\n", arr->capacity);
+    }
+
+    arr->data[arr->size] = value;
+    arr->size++;
+}
+
+int get(DynArray* arr, int index) {
+    if (index < 0 || index >= arr->size) {
+        printf("Error: index out of bounds\n");
+        return -1;
+    }
+
+    return arr->data[index];
+}
+
+void free_array(DynArray* arr) {
+    if (arr != NULL) {
+        free(arr->data);
+        free(arr);
+    }
+}
+
+int main() {
+    DynArray* arr = create_array(2);
+
+    if (arr == NULL) {
+        return 1;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        push_back(arr, i * 10);
+        printf("Added %d | Size: %d | Capacity: %d\n",
+               i * 10, arr->size, arr->capacity);
+    }
+
+    printf("\nArray elements:\n");
+
+    for (int i = 0; i < arr->size; i++) {
+        printf("%d ", get(arr, i));
+    }
+
+    printf("\n");
+
+    free_array(arr);
+
+    return 0;
+}
+```
+
+[Tutor  ]
+📚 Your Task:
+
+**Task: Implement a Dynamic Array (like std::vector) in C**
+
+Use this struct:
+```c
+typedef struct {
+    int* data;
+    int size;
+    int capacity;
+} DynArray;
+```
+
+Implement:
+1. `DynArray* create_array(int initial_capacity)` — malloc the struct and the data buffer
+2. `void push_back(DynArray* arr, int value)` — append element; **double capacity with realloc** when full
+3. `int get(DynArray* arr, int index)` — return element; print error and return -1 if out of bounds
+4. `void free_array(DynArray* arr)` — free the data buffer AND the struct itself
+5. Write `main()` that pushes 10 elements and prints them, showing capacity doubling.
+
+Ask me anything to get help, or type SUBMIT when you're ready to submit your code.
+
+[Tutor  ]
+✅ PASS
+
+RESULT: PASS
+
+FEEDBACK: The code passes all the requirements and criteria. It correctly doubles the capacity when full using realloc, includes bounds checking in get(), frees both data buffer and the struct, and demonstrates capacity growth through the main function.
+
+📊 Score: 100/100
+   (Base: 100 | Hints used: 0 | Penalty: -0)
+

@@ -1,0 +1,69 @@
+=== Coding Tutor – C/C++ Session Log ===
+Student ID  : 341128221
+Scenario    : C++ Smart Pointers
+Help Level  : 1 – Strict
+Hints Used  : 1
+Final Score : 50/100
+Saved At    : 2026-07-23 11:08:01
+=============================================
+
+[Tutor  ]
+👋 Hello! I'm here to help. Ask me any questions about the task.
+
+[Student]
+what's a raw pointer
+
+[Student]
+what's a raw pointer
+
+[Tutor  ]
+A raw pointer is a variable that holds the memory address of another object in your program. It allows you to directly access and manipulate the memory location where an object is stored. However, using raw pointers can lead to issues such as memory leaks, dangling pointers, and undefined behavior if not handled carefully.
+
+Do you have any specific questions about raw pointers or how they differ from smart pointers like `unique_ptr` and `shared_ptr`?
+
+[Student]
+show me an example
+
+[Student]
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#using namespace std;
+
+int main(){
+Node node = make_unique<NODE>(0);
+Node head = nodel;
+
+for( int i = 1 ; i < 2; i++){
+Node son = make_unique<NODE>(i);
+node->next = son;
+node = node->next;
+}
+
+while ( head != null){
+printf("%d",head->val);
+head = head->next;
+}
+
+printf("finish");
+}
+
+```
+
+[Tutor  ]
+❌ FAIL
+
+RESULT: FAIL  
+FEEDBACK: The code contains several issues. It uses raw pointers instead of smart pointers, which violates the requirements for Part 1. Additionally, there is no demonstration of shared_ptr use_count() or reference counting as required in Part 2. There is also a missing comment on move semantics as specified in Part 3.
+
+### 📊 Score Breakdown
+
+| Component | Count | Per unit | Deduction |
+|---|---|---|---|
+| Base score | — | — | 50 |
+| Failed runs | 0 | −1.0 each | 0 |
+| Hints – Level 1 (Strict) | 1 | −0.5 each | −0.5 |
+| Hints – Level 2 (Guided) | 0 | −1.0 each | 0 |
+| Hints – Level 3 (Supported) | 0 | −1.5 each | 0 |
+| **Final Score** | | **Total −0.5** | **50/100** |
+

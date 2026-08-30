@@ -1,3 +1,0 @@
---- Production Trap Simulator Chat Mode ---
-📝 Logging session to: Results/simulation_log_20260604_143512.txt
-❌ OPENAI_API_KEY not found.

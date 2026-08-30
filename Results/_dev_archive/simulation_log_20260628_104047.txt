@@ -1,6 +1,0 @@
---- Production Trap Simulator Chat Mode ---
-📝 Logging session to: Results/simulation_log_20260628_104047.txt
-✅ Running with local Ollama model (qwen2.5-coder).
-Starting simulation...
-
-🆔 Please enter your Student ID to begin: 

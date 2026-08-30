@@ -6,7 +6,7 @@ from production_sim.helper import add_unique_messages
 class TutorState(TypedDict):
     messages: Annotated[List[BaseMessage], add_unique_messages]
     current_phase: Literal["chat", "evaluation", "done"]
-    help_level: int          # 1=Strict, 2=Guided, 3=Supported
+    help_level: int          # 1=Strict, 2=Guided, 3=Supported — per-question, auto-escalates
     scenario_id: str
     scenario_data: dict
     hint_count: int          # total chat questions asked (all levels)

@@ -110,7 +110,6 @@ class AgentNodes:
     def tutor_node(self, state):
         new_state = state.copy()
         scenario = state["scenario_data"]
-        help_level = state.get("help_level", 2)
         messages = list(state.get("messages", []))
 
         parts = scenario.get("parts", [])
@@ -122,20 +121,74 @@ class AgentNodes:
             greeting = "👋 Hello! I'm here to help. Ask me any questions about the task."
             new_state["messages"] = [create_ai_message(greeting)]
             new_state["task_presented"] = True
+            new_state["help_level"] = 1
             return new_state
 
-        # Subsequent turns: answer chat with conversation history
+        # Every question starts at level 1; escalates only if the student says
+        # they didn't understand the SAME question, resets on a new question.
+        level = self.compute_question_level(state)
+        state = {**state, "help_level": level}
         system_text, history = self._build_tutor_system(state)
-        reply = self._chat(system_text, history, help_level)
+        reply = self._chat(system_text, history, level)
 
+        hpl = dict(state.get("hints_per_level", {1: 0, 2: 0, 3: 0}))
+        hpl[level] = hpl.get(level, 0) + 1
+
+        new_state["help_level"] = level
+        new_state["hints_per_level"] = hpl
         new_state["hint_count"] = state.get("hint_count", 0) + 1
         new_state["messages"] = [create_ai_message(reply)]
         return new_state
 
+    def _classify_continuation(self, prior_ai_text: str, latest_user_text: str) -> bool:
+        """True if the student is saying they didn't understand / need more help
+        on the SAME question the tutor just answered; False if this is a new
+        or different question."""
+        system = (
+            "You classify one turn of a student/tutor chat in a programming course.\n\n"
+            f"TUTOR'S LAST REPLY:\n{prior_ai_text}\n\n"
+            f"STUDENT'S NEW MESSAGE:\n{latest_user_text}\n\n"
+            "Is the student saying they didn't understand, are still confused, or are "
+            "asking for more/clearer help on that SAME point the tutor just answered? "
+            "Or are they asking a different/new question?\n"
+            "Reply with exactly one word: SAME or NEW."
+        )
+        try:
+            resp = self.llm.invoke([SystemMessage(content=system)])
+            return resp.content.strip().upper().startswith("SAME")
+        except Exception:
+            return False
+
+    def compute_question_level(self, state) -> int:
+        """Per-question help level: every question starts at level 1. If the
+        student's latest message indicates they didn't understand / need more
+        help on the same question as the tutor's last reply, escalate one
+        level (capped at 3). A new/different question resets to level 1."""
+        if not state.get("task_presented", False) or state.get("hint_count", 0) == 0:
+            return 1
+
+        messages = list(state.get("messages", []))
+        latest_user, prior_ai = None, None
+        for m in reversed(messages):
+            name = type(m).__name__
+            if latest_user is None and name == "HumanMessage":
+                latest_user = m.content
+            elif latest_user is not None and name == "AIMessage":
+                prior_ai = m.content
+                break
+
+        if not latest_user or not prior_ai:
+            return 1
+
+        current_level = state.get("help_level", 1)
+        if self._classify_continuation(prior_ai, latest_user):
+            return min(current_level + 1, 3)
+        return 1
+
     def _build_tutor_system(self, state) -> tuple[str, list]:
         """Return (system_text, lc_history) for both streaming and non-streaming paths."""
         scenario = state["scenario_data"]
-        help_level = state.get("help_level", 2)
+        help_level = state.get("help_level", 1)
         messages = list(state.get("messages", []))
         parts = scenario.get("parts", [])
         current_idx = state.get("current_part_index", -1)
@@ -165,7 +218,7 @@ class AgentNodes:
         Level 3: true token streaming.
         Levels 1/2: full invoke first (so code detection works), then yield result.
         """
-        help_level = state.get("help_level", 2)
+        help_level = state.get("help_level", 1)
         system_text, history = self._build_tutor_system(state)
 
         if help_level == 3:

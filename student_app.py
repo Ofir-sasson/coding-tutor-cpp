@@ -9,7 +9,6 @@ from production_sim.auto_tester import auto_test, check_syntax
 from production_sim.helper import calculate_score, score_breakdown_md
 from app_shared import (
     LEVEL_LABELS, LEVEL_DESCRIPTIONS,
-    get_effective_help_level, load_config, save_config,
     update_session_current, complete_session, save_chat_log,
     run_graph, start_student_session, get_completed_scenarios,
     render_dark_mode_toggle,
@@ -116,13 +115,18 @@ def screen_id_entry():
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
-def render_sidebar(gs, effective_level, is_done):
+def render_sidebar(gs, is_done):
     render_dark_mode_toggle()
     with st.sidebar:
         st.markdown(f"**סטודנט:** `{st.session_state.student_id}`")
-        st.markdown(f"**רמת עזרה:** {effective_level} – {LEVEL_LABELS.get(effective_level, '?')}")
 
         if gs:
+            current_level = gs.get("help_level", 1)
+            st.markdown(f"**רמת עזרה נוכחית:** {current_level} – {LEVEL_LABELS.get(current_level, '?')}")
+            st.caption(
+                "כל שאלה חדשה מתחילה ברמה 1. אם תגידו שלא הבנתם או תבקשו עוד עזרה, "
+                "הרמה תעלה אוטומטית עבור אותה שאלה בלבד."
+            )
             completed_count = len(get_completed_scenarios(st.session_state.student_id))
             if completed_count:
                 st.markdown(f"**שאלות שהושלמו:** {completed_count}")
@@ -131,30 +135,6 @@ def render_sidebar(gs, effective_level, is_done):
             st.markdown(f"**שלב:** {phase_map.get(gs.get('current_phase', 'chat'), '')}")
             if is_done:
                 st.markdown(f"**ציון:** {gs.get('score', 0)}/100")
-
-        # Help level increase
-        if not is_done and effective_level < 3:
-            st.markdown("---")
-            next_lvl = effective_level + 1
-            if st.button(
-                f"🆘 בקש עזרה נוספת → רמה {next_lvl}",
-                use_container_width=True,
-                help=f"יעלה את רמת העזרה ל-{LEVEL_LABELS[next_lvl]}",
-            ):
-                cfg = load_config()
-                cfg.setdefault("student_overrides", {})[st.session_state.student_id] = next_lvl
-                save_config(cfg)
-                update_session_current(st.session_state.student_id, {"help_level": next_lvl})
-                gs["help_level"] = next_lvl
-                st.session_state.graph_state = gs
-                st.session_state.chat_history.append({
-                    "role": "assistant",
-                    "content": (
-                        f"ℹ️ **רמת העזרה עלתה לרמה {next_lvl} – {LEVEL_LABELS[next_lvl]}.**  \n"
-                        f"{LEVEL_DESCRIPTIONS[next_lvl]}"
-                    ),
-                })
-                st.rerun()
 
         st.markdown("---")
         if st.button("🚪 סיום וסגירה", use_container_width=True):
@@ -197,8 +177,23 @@ def render_chat_column(gs):
 
         nodes = st.session_state.get("agent_nodes")
         if nodes:
+            # Every question starts at level 1; escalates only if the student
+            # indicates they didn't understand the SAME question (using the
+            # full chat history for context), resets on a new question.
+            prev_level = gs.get("help_level", 1)
+            level = nodes.compute_question_level(gs)
+            gs["help_level"] = level
+            if level > prev_level:
+                st.session_state.chat_history.append({
+                    "role": "assistant",
+                    "content": (
+                        f"ℹ️ **עולה לרמה {level} – {LEVEL_LABELS[level]} עבור השאלה הזו.**  \n"
+                        f"{LEVEL_DESCRIPTIONS[level]}"
+                    ),
+                })
+
             with st.chat_message("assistant"):
-                if gs.get("help_level", 2) == 3:
+                if level == 3:
                     # True token-by-token streaming.
                     response_text = st.write_stream(nodes.stream_tutor_response(gs))
                 else:
@@ -211,7 +206,6 @@ def render_chat_column(gs):
                     st.markdown(response_text)
             gs["hint_count"] = gs.get("hint_count", 0) + 1
             # Track per-level hint count for granular scoring
-            level = gs.get("help_level", 2)
             hpl = gs.get("hints_per_level", {1: 0, 2: 0, 3: 0})
             hpl[level] = hpl.get(level, 0) + 1
             gs["hints_per_level"] = hpl
@@ -225,11 +219,6 @@ def render_chat_column(gs):
         else:
             with st.spinner("חושב..."):
                 new_state, new_msgs = run_graph(st.session_state.graph_app, gs)
-            # Sync hints_per_level from graph state update
-            level = gs.get("help_level", 2)
-            hpl = gs.get("hints_per_level", {1: 0, 2: 0, 3: 0})
-            hpl[level] = hpl.get(level, 0) + 1
-            new_state["hints_per_level"] = hpl
             st.session_state.graph_state = new_state
             update_session_current(
                 st.session_state.student_id,
@@ -242,7 +231,7 @@ def render_chat_column(gs):
 
 # ── Multi-part exam screen ───────────────────────────────────────────────────
 
-def _finish_multipart(gs, scenario, parts, help_level):
+def _finish_multipart(gs, scenario, parts):
     """Called when all parts are passed. Save log, complete session, show result."""
     hints_per_level = gs.get("hints_per_level", {1: 0, 2: 0, 3: 0})
     failed_runs = gs.get("failed_runs", 0)
@@ -252,7 +241,7 @@ def _finish_multipart(gs, scenario, parts, help_level):
     if not st.session_state.log_saved:
         save_chat_log(
             st.session_state.student_id, scenario["name"],
-            help_level, st.session_state.chat_history,
+            hints_per_level, st.session_state.chat_history,
             score, hint_count,
         )
         complete_session(st.session_state.student_id, score, hint_count)
@@ -281,7 +270,7 @@ def _first_unpassed_index(parts, parts_passed, start=0):
     return start
 
 
-def screen_exam_multipart(gs, scenario, parts, effective_level):
+def screen_exam_multipart(gs, scenario, parts):
     parts_passed = st.session_state.parts_passed
     num_parts = len(parts)
     use_accumulation = scenario.get("accumulate_code", False)
@@ -293,7 +282,7 @@ def screen_exam_multipart(gs, scenario, parts, effective_level):
 
     # All done?
     if len(parts_passed) >= num_parts:
-        _finish_multipart(gs, scenario, parts, effective_level)
+        _finish_multipart(gs, scenario, parts)
         return
 
     current_idx = st.session_state.current_part_index
@@ -479,7 +468,7 @@ def screen_exam_multipart(gs, scenario, parts, effective_level):
 
 # ── Single-submission exam screen ─────────────────────────────────────────────
 
-def screen_exam_single(gs, scenario, effective_level):
+def screen_exam_single(gs, scenario):
     is_done = gs and gs.get("current_phase") == "done"
 
     if is_done:
@@ -487,7 +476,7 @@ def screen_exam_single(gs, scenario, effective_level):
             scenario_name = gs.get("scenario_data", {}).get("name", "unknown")
             save_chat_log(
                 st.session_state.student_id, scenario_name,
-                gs.get("help_level", 2), st.session_state.chat_history,
+                gs.get("hints_per_level", {1: 0, 2: 0, 3: 0}), st.session_state.chat_history,
                 gs.get("score", 0), gs.get("hint_count", 0),
             )
             complete_session(
@@ -567,13 +556,8 @@ def screen_exam_single(gs, scenario, effective_level):
 
 def screen_exam():
     gs = st.session_state.graph_state
-    effective_level = get_effective_help_level(st.session_state.student_id)
-    # Always sync latest teacher override into graph state
-    if gs:
-        gs["help_level"] = effective_level
-
     is_done = gs and gs.get("current_phase") == "done"
-    render_sidebar(gs, effective_level, is_done)
+    render_sidebar(gs, is_done)
 
     st.markdown(IDE_CSS, unsafe_allow_html=True)
     st.title("🎓 Coding Tutor – C/C++")
@@ -586,9 +570,9 @@ def screen_exam():
     parts = scenario.get("parts", [])
 
     if parts:
-        screen_exam_multipart(gs, scenario, parts, effective_level)
+        screen_exam_multipart(gs, scenario, parts)
     else:
-        screen_exam_single(gs, scenario, effective_level)
+        screen_exam_single(gs, scenario)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

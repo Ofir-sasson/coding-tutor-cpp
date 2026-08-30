@@ -7,10 +7,9 @@ Default password: teacher123
 import os
 import streamlit as st
 from app_shared import (
-    LEVEL_LABELS, LEVEL_DESCRIPTIONS, DEFAULT_PASSWORD,
+    DEFAULT_PASSWORD,
     load_config, save_config,
-    load_sessions, get_student_data, get_effective_help_level,
-    update_session_current, save_sessions,
+    load_sessions, get_student_data,
     render_dark_mode_toggle, is_real_session_log,
 )
 
@@ -63,17 +62,11 @@ def screen_dashboard():
 
     # ─ Tab 1: Global settings ─────────────────────────────────────────────────
     with tab1:
-        st.markdown("### רמת עזרה ברירת מחדל לכל הסטודנטים")
+        st.markdown("### רמת עזרה")
         st.caption(
-            "רמה זו חלה על כל סטודנט שאין לו override אישי. "
-            "ניתן לשנות per-student בלשונית 'סטודנטים'."
-        )
-        current_level = cfg.get("help_level", 2)
-        new_level = st.radio(
-            "בחר רמה:",
-            options=[1, 2, 3],
-            index=current_level - 1,
-            format_func=lambda x: f"רמה {x} – {LEVEL_LABELS[x]}  |  {LEVEL_DESCRIPTIONS[x]}",
+            "כל שאלה של סטודנט מתחילה אוטומטית ברמה 1 (מנחה בלבד). אם הסטודנט "
+            "מציין שלא הבין, הרמה עולה אוטומטית עבור אותה שאלה בלבד — עד רמה 3. "
+            "שאלה חדשה תמיד מתחילה שוב מרמה 1. אין הגדרת רמה ידנית."
         )
 
         st.markdown("---")
@@ -81,11 +74,10 @@ def screen_dashboard():
         new_pwd = st.text_input("סיסמא חדשה (ריק = שמור נוכחית)", type="password")
 
         if st.button("💾 שמור הגדרות", type="primary"):
-            cfg["help_level"] = new_level
             if new_pwd:
                 cfg["teacher_password"] = new_pwd
-            save_config(cfg)
-            st.success(f"✅ נשמר! ברירת מחדל: רמה {new_level} – {LEVEL_LABELS[new_level]}")
+                save_config(cfg)
+            st.success("✅ נשמר!")
 
         st.markdown("---")
         st.markdown("### מידע על השאלות")
@@ -120,8 +112,6 @@ def screen_dashboard():
                 data = get_student_data(sid)
                 current = data.get("current")
                 history = data.get("history", [])
-                eff_lvl = get_effective_help_level(sid)
-                override = " ✏️" if sid in cfg.get("student_overrides", {}) else ""
                 scores = [h["score"] for h in history if h.get("score") is not None]
                 avg_score = round(sum(scores) / len(scores), 1) if scores else "—"
                 rows.append({
@@ -131,7 +121,6 @@ def screen_dashboard():
                     "ציונים": ", ".join(str(s) for s in scores) or "—",
                     "שאלה נוכחית": current.get("scenario_name", "—") if current else "—",
                     "סטטוס": "🔵 פעיל" if current else "✅ סיים",
-                    "רמת עזרה": f"{eff_lvl}{override}",
                 })
             st.dataframe(rows, use_container_width=True)
 
@@ -139,47 +128,14 @@ def screen_dashboard():
             st.markdown("### ניהול סטודנט")
             selected_sid = st.selectbox("בחר סטודנט:", list(sessions.keys()))
             data = get_student_data(selected_sid)
-            eff_lvl = get_effective_help_level(selected_sid)
-            override_note = " (override אישי)" if selected_sid in cfg.get("student_overrides", {}) else " (ברירת מחדל)"
 
-            col_left, col_right = st.columns(2)
-
-            with col_left:
-                st.markdown(f"#### רמת עזרה — {selected_sid}{override_note}")
-                new_sid_lvl = st.radio(
-                    "רמה:",
-                    options=[1, 2, 3],
-                    index=eff_lvl - 1,
-                    format_func=lambda x: f"רמה {x} – {LEVEL_LABELS[x]}",
-                    key="sid_lvl_radio",
-                )
-                c1, c2 = st.columns(2)
-                with c1:
-                    if st.button("💾 שמור", type="primary", use_container_width=True):
-                        cfg.setdefault("student_overrides", {})[selected_sid] = new_sid_lvl
-                        save_config(cfg)
-                        update_session_current(selected_sid, {"help_level": new_sid_lvl})
-                        st.success(f"✅ {selected_sid} → רמה {new_sid_lvl}")
-                        st.rerun()
-                with c2:
-                    if st.button("🔄 אפס", use_container_width=True):
-                        overrides = cfg.get("student_overrides", {})
-                        if selected_sid in overrides:
-                            del overrides[selected_sid]
-                            save_config(cfg)
-                            st.success(f"אופס לרמה {cfg.get('help_level', 2)}")
-                            st.rerun()
-                        else:
-                            st.info("אין override.")
-
-            with col_right:
-                st.markdown(f"#### שאלות שהושלמו — {selected_sid}")
-                completed = data.get("completed_scenarios", [])
-                if completed:
-                    for sc_id in completed:
-                        st.markdown(f"- `{sc_id}`")
-                else:
-                    st.info("עדיין לא השלים שאלות.")
+            st.markdown(f"#### שאלות שהושלמו — {selected_sid}")
+            completed = data.get("completed_scenarios", [])
+            if completed:
+                for sc_id in completed:
+                    st.markdown(f"- `{sc_id}`")
+            else:
+                st.info("עדיין לא השלים שאלות.")
 
             history = data.get("history", [])
             if history:
@@ -187,7 +143,6 @@ def screen_dashboard():
                 hist_rows = [
                     {
                         "שאלה": h.get("scenario_name", h.get("scenario_id", "?")),
-                        "רמת עזרה": h.get("help_level", "—"),
                         "רמזים": h.get("hint_count", 0),
                         "ציון": h.get("score", "—"),
                         "תאריך": h.get("completed_at", "")[:16].replace("T", " "),

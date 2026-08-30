@@ -5,7 +5,7 @@ from .scenarios import ScenarioManager
 
 
 class CodingTutorSim:
-    def __init__(self, student_id: str, help_level: int = 2, completed_scenarios: list = None):
+    def __init__(self, student_id: str, help_level: int = 1, completed_scenarios: list = None):
         self.student_id = student_id
         self.help_level = help_level
         self.completed_scenarios = completed_scenarios or []

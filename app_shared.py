@@ -86,19 +86,12 @@ def render_dark_mode_toggle():
 
 def load_config() -> dict:
     if os.path.exists(CONFIG_FILE):
-        cfg = json.load(open(CONFIG_FILE))
-        cfg.setdefault("student_overrides", {})
-        return cfg
-    return {"help_level": 2, "teacher_password": DEFAULT_PASSWORD, "student_overrides": {}}
+        return json.load(open(CONFIG_FILE))
+    return {"teacher_password": DEFAULT_PASSWORD}
 
 
 def save_config(cfg: dict):
     json.dump(cfg, open(CONFIG_FILE, "w"), indent=2, ensure_ascii=False)
-
-
-def get_effective_help_level(student_id: str) -> int:
-    cfg = load_config()
-    return cfg["student_overrides"].get(student_id, cfg.get("help_level", 2))
 
 
 # ── Sessions (sessions.json) ──────────────────────────────────────────────────
@@ -137,14 +130,13 @@ def get_completed_scenarios(student_id: str) -> list:
     return get_student_data(student_id).get("completed_scenarios", [])
 
 
-def register_session(student_id: str, scenario_id: str, scenario_name: str, help_level: int):
+def register_session(student_id: str, scenario_id: str, scenario_name: str):
     sessions = load_sessions()
     student_data = get_student_data(student_id)
     student_data["student_id"] = student_id
     student_data["current"] = {
         "scenario_id": scenario_id,
         "scenario_name": scenario_name,
-        "help_level": help_level,
         "hint_count": 0,
         "score": None,
         "start_time": datetime.now().isoformat(timespec="seconds"),
@@ -200,17 +192,19 @@ def is_real_session_log(filename: str) -> bool:
     return bool(SESSION_LOG_RE.match(filename))
 
 
-def save_chat_log(student_id, scenario_name, help_level, chat_history, score, hint_count) -> str:
+def save_chat_log(student_id, scenario_name, hints_per_level, chat_history, score, hint_count) -> str:
     results_dir = "Results"
     os.makedirs(results_dir, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = os.path.join(results_dir, f"session_{student_id}_{ts}.txt")
+    h1 = hints_per_level.get(1, 0)
+    h2 = hints_per_level.get(2, 0)
+    h3 = hints_per_level.get(3, 0)
     with open(path, "w", encoding="utf-8") as f:
         f.write("=== Coding Tutor – C/C++ Session Log ===\n")
         f.write(f"Student ID  : {student_id}\n")
         f.write(f"Scenario    : {scenario_name}\n")
-        f.write(f"Help Level  : {help_level} – {LEVEL_LABELS.get(help_level, '?')}\n")
-        f.write(f"Hints Used  : {hint_count}\n")
+        f.write(f"Hints Used  : {hint_count}  (Level 1: {h1}, Level 2: {h2}, Level 3: {h3})\n")
         f.write(f"Final Score : {score if score is not None else 'N/A'}/100\n")
         f.write(f"Saved At    : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("=" * 45 + "\n\n")
@@ -251,12 +245,10 @@ def start_student_session(student_id: str):
     Build CodingTutorSim, run first graph step (task presentation),
     register session. Returns (graph_app, graph_state, initial_chat_messages).
     """
-    effective_level = get_effective_help_level(student_id)
     completed = get_completed_scenarios(student_id)
 
     sim = CodingTutorSim(
         student_id=student_id,
-        help_level=effective_level,
         completed_scenarios=completed,
     )
     app = sim.compile()
@@ -265,7 +257,7 @@ def start_student_session(student_id: str):
 
     scenario_id = new_state.get("scenario_id", "unknown")
     scenario_name = new_state.get("scenario_data", {}).get("name", scenario_id)
-    register_session(student_id, scenario_id, scenario_name, effective_level)
+    register_session(student_id, scenario_id, scenario_name)
 
     chat_msgs = [{"role": "assistant", "content": m.content} for m in new_msgs]
     return app, sim.nodes, new_state, chat_msgs

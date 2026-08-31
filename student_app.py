@@ -24,9 +24,19 @@ div[data-testid="stTextArea"] textarea {
 </style>
 """
 
-SINGLE_PLACEHOLDER = """\
+SINGLE_PLACEHOLDER_C = """\
 #include <stdio.h>
 #include <stdlib.h>
+
+// Write your solution here
+
+int main() {
+
+    return 0;
+}"""
+
+SINGLE_PLACEHOLDER_CPP = """\
+#include <iostream>
 
 // Write your solution here
 
@@ -514,7 +524,7 @@ def screen_exam_single(gs, scenario):
             label="Code",
             height=_code_editor_height(st.session_state.get("live_code", ""), minimum=430),
             key="live_code",
-            placeholder=SINGLE_PLACEHOLDER,
+            placeholder=SINGLE_PLACEHOLDER_CPP if scenario.get("language") == "cpp" else SINGLE_PLACEHOLDER_C,
             label_visibility="collapsed",
         )
 
@@ -534,7 +544,7 @@ def screen_exam_single(gs, scenario):
         if syntax_clicked:
             if code.strip():
                 with st.spinner("Checking syntax..."):
-                    syn_passed, syn_feedback = check_syntax(code, "c")
+                    syn_passed, syn_feedback = check_syntax(code, scenario.get("language", "c"))
                 st.session_state.single_syntax_result = {"passed": syn_passed, "feedback": syn_feedback}
                 st.rerun()
             else:

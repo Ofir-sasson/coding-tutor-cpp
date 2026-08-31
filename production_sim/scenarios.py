@@ -715,6 +715,7 @@ int main(void){
     {
         "id": "file_io",
         "name": "File I/O in C",
+        "language": "c",
         "dev_requirement": """**Task: File Operations in C**
 
 Write a C program that:
@@ -1684,6 +1685,7 @@ int main(){
     {
         "id": "cpp_stl",
         "name": "C++ STL — Word Frequency Counter",
+        "language": "cpp",
         "dev_requirement": """**Task: Word Frequency Counter Using C++ STL**
 
 Write a C++ program that:
@@ -1733,6 +1735,7 @@ FAIL if:
     {
         "id": "cpp_smart_ptrs",
         "name": "C++ Smart Pointers",
+        "language": "cpp",
         "dev_requirement": """**Task: Smart Pointers — unique_ptr and shared_ptr**
 
 **Part 1: unique_ptr linked list**

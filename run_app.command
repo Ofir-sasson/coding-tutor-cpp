@@ -1,5 +1,6 @@
 #!/bin/bash
 # Double-click this file to launch the Coding Tutor app in the browser.
+# The Teacher Dashboard is reachable from the sidebar nav of the same app.
 
 cd "$(dirname "$0")"
 

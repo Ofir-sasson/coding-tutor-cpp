@@ -1,6 +1,5 @@
 import re
-import threading
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage as LCHumanMessage, AIMessage as LCAIMessage
 from production_sim.helper import create_ai_message, calculate_score, score_breakdown_md
 
@@ -58,29 +57,14 @@ def _build_history(messages, max_turns: int = 6):
 
 
 class AgentNodes:
-    def __init__(self, model_name="qwen2.5-coder:7b"):
-        self.llm = ChatOllama(
+    def __init__(self, model_name="openai/gpt-oss-120b"):
+        self.llm = ChatGroq(
             model=model_name,
             temperature=0.3,
             timeout=120,
-            # Ollama unloads a model from memory after ~5 min idle by default;
-            # reloading a 7B model can take tens of seconds. Keeping it warm
-            # for the length of a session avoids that latency spike mid-chat.
-            keep_alive="30m",
             # Bound worst-case response length so a single reply can't run away.
-            num_predict=500,
+            max_tokens=500,
         )
-        # Fire a throwaway request in the background as soon as the session
-        # starts, so the model is already loaded into memory by the time the
-        # student asks their first real question (overlaps with the
-        # "טוען מטלה..." spinner shown during session setup).
-        threading.Thread(target=self._warmup, daemon=True).start()
-
-    def _warmup(self):
-        try:
-            self.llm.invoke([SystemMessage(content="Reply with OK.")])
-        except Exception:
-            pass
 
     def _chat(self, system_text: str, history: list, help_level: int) -> str:
         """Call LLM with conversation history; re-invoke once if code leaks at level < 3."""
@@ -89,7 +73,7 @@ class AgentNodes:
             text = response.content
         except Exception as e:
             print(f"⚠️ LLM connection error: {e}")
-            return "⚠️ Connection error — make sure Ollama is running and try again."
+            return "⚠️ Connection error — check your internet connection and GROQ_API_KEY, then try again."
 
         if help_level < 3 and _has_code(text):
             fallback = (
@@ -102,7 +86,7 @@ class AgentNodes:
                 text = retry.content
             except Exception:
                 pass
-            text = _CODE_FENCE_RE.sub("[קוד הוסר — רמת עזרה 1/2]", text)
+            text = _CODE_FENCE_RE.sub("[code removed — help level 1/2]", text)
 
         return text
 
@@ -227,7 +211,7 @@ class AgentNodes:
                     if chunk.content:
                         yield chunk.content
             except Exception as e:
-                yield f"\n\n⚠️ Connection error — make sure Ollama is running. ({e})"
+                yield f"\n\n⚠️ Connection error — check your internet connection and GROQ_API_KEY. ({e})"
         else:
             # Enforce no-code rule before showing anything
             reply = self._chat(system_text, history, help_level)

@@ -68,11 +68,10 @@
     "current": {
       "scenario_id": "cpp_class_inherit",
       "scenario_name": "C++ Classes and Inheritance",
-      "help_level": 1,
-      "hint_count": 0,
+      "hint_count": 2,
       "score": null,
-      "start_time": "2026-08-16T16:33:43",
-      "last_active": "2026-08-16T16:33:43",
+      "start_time": "2026-08-30T11:33:38",
+      "last_active": "2026-08-30T11:35:27",
       "status": "active"
     },
     "history": []
@@ -83,11 +82,10 @@
     "current": {
       "scenario_id": "dynamic_2d_array",
       "scenario_name": "Dynamic 2D Array in C",
-      "help_level": 1,
       "hint_count": 0,
       "score": null,
-      "start_time": "2026-07-14T10:01:24",
-      "last_active": "2026-07-14T10:01:24",
+      "start_time": "2026-08-17T09:40:00",
+      "last_active": "2026-08-17T09:40:00",
       "status": "active"
     },
     "history": []
@@ -120,5 +118,19 @@
         "completed_at": "2026-07-23T11:08:01"
       }
     ]
+  },
+  "5": {
+    "student_id": "5",
+    "completed_scenarios": [],
+    "current": {
+      "scenario_id": "cpp_template",
+      "scenario_name": "C++ Generic Templates",
+      "hint_count": 0,
+      "score": null,
+      "start_time": "2026-08-30T11:02:58",
+      "last_active": "2026-08-30T11:02:58",
+      "status": "active"
+    },
+    "history": []
   }
 }

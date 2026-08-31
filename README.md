@@ -6,25 +6,29 @@ the way, get their code compiled and tested automatically, and receive a score.
 A separate teacher dashboard shows every student's progress and lets the instructor
 read the full chat/session logs.
 
-It's two Streamlit apps sharing one backend:
+It's a single Streamlit multipage app:
 
-- **`student_app.py`** — the exam UI students use.
-- **`teacher_app.py`** — the password-protected dashboard the instructor uses.
-- **`app_shared.py`** — everything both apps need in common (config, session
+- **`student_app.py`** — the exam UI students use; also the app's main entry
+  point.
+- **`pages/1_Teacher_Dashboard.py`** — the password-protected dashboard the
+  instructor uses, reachable from the sidebar nav. Runs in the same process
+  as the student app, so it shares its filesystem (`sessions.json`,
+  `Results/`) instead of needing a database.
+- **`app_shared.py`** — everything both pages need in common (config, session
   bookkeeping, log writing, dark mode, the LangGraph runner).
 - **`production_sim/`** — the actual tutoring/grading engine (LangGraph state
   machine, the scenario bank, the LLM prompts, the C/C++ auto-grader).
 
-There is no separate backend server — Streamlit *is* the server, and each app
-talks directly to a local [Ollama](https://ollama.com) model and to `gcc`/`g++`
-on the same machine.
+There is no separate backend server — Streamlit *is* the server, and it talks
+directly to a hosted LLM via [Groq](https://groq.com) and to `gcc`/`g++` on
+the same machine.
 
 ---
 
 ## How a session works
 
-1. A student opens `student_app.py`, types their student ID, and clicks **התחל
-   בחינה** (Start Exam).
+1. A student opens `student_app.py`, types their student ID, and clicks
+   **Start Exam**.
 2. `start_student_session()` (in `app_shared.py`) builds a `CodingTutorSim`
    (`production_sim/graph.py`), which:
    - picks a scenario for that student via `ScenarioManager` (deterministic
@@ -62,11 +66,10 @@ level selector anywhere in the app:**
 - Every new question a student asks starts at **level 1**.
 - If the student's next message indicates they didn't understand / need more
   help on that *same* question, the tutor escalates one level (capped at 3)
-  for the next reply. A small local LLM call
-  (`AgentNodes._classify_continuation`) reads the tutor's last reply and the
-  student's new message and classifies it as `SAME` (still on this question)
-  or `NEW` (a different question) — this uses the same Ollama model as the
-  tutor itself, not a keyword match.
+  for the next reply. An LLM call (`AgentNodes._classify_continuation`) reads
+  the tutor's last reply and the student's new message and classifies it as
+  `SAME` (still on this question) or `NEW` (a different question) — this uses
+  the same Groq-hosted model as the tutor itself, not a keyword match.
 - Asking something new resets back to level 1, even mid-conversation.
 - The chat panel shows a small "ℹ️ escalating to level X" notice whenever
   this happens, and the sidebar always shows the level in effect for the
@@ -145,7 +148,7 @@ success).
 
 ## Auto-grading (`production_sim/auto_tester.py`)
 
-For multi-part scenarios, clicking **▶️ בדוק קוד** (Check Code) does:
+For multi-part scenarios, clicking **▶️ Run Code** does:
 
 ```
 part["setup"]  +  student's code  +  part["test_harness"]
@@ -158,7 +161,7 @@ student verbatim (path names scrubbed). **`gcc` and `g++` must be installed
 and on `PATH`** for this to work — there's no sandboxing beyond a
 subprocess timeout.
 
-**🔎 בדוק תחביר בלבד** (Syntax check only) runs `-fsyntax-only`, no linking or
+**🔎 Check Syntax Only** runs `-fsyntax-only`, no linking or
 execution — lets a student catch typos without spending a full test attempt.
 
 For single-submission scenarios, the submitted code isn't compiled at all —
@@ -188,10 +191,11 @@ markdown table shown to the student when they finish.
 ## Project structure
 
 ```
-student_app.py          Student exam UI (ID entry → code editor + chat → result)
-teacher_app.py           Password-protected teacher dashboard
-app_shared.py            Shared config/session/log helpers used by both apps
-requirements.txt         Python dependencies (Streamlit + LangChain/LangGraph/Ollama)
+student_app.py          Student exam UI (ID entry → code editor + chat → result) — app entry point
+pages/1_Teacher_Dashboard.py  Password-protected teacher dashboard (sidebar nav page)
+app_shared.py            Shared config/session/log helpers used by both pages
+requirements.txt         Python dependencies (Streamlit + LangChain/LangGraph/Groq)
+packages.txt             Apt packages for Streamlit Cloud (gcc/g++ via build-essential)
 run_app.command           Double-clickable launcher for student_app.py (macOS)
 teacher_config.json       { teacher_password } — only the dashboard password now
 sessions.json             Per-student state: completed scenarios, active session, history
@@ -230,30 +234,30 @@ built for concurrent writers at scale.
 One log per completed session, named `session_{student_id}_{timestamp}.txt`,
 containing the student ID, scenario, hint counts (with the level breakdown),
 final score, and the full chat transcript. The teacher dashboard's **📋
-לוגים** tab lists and opens these (filtered by the
+Logs** tab lists and opens these (filtered by the
 `session_<id>_<date>_<time>.txt` naming pattern — see
 `is_real_session_log()` in `app_shared.py`).
 
 ### `teacher_config.json`
 
 Just `{ "teacher_password": "..." }` — the dashboard login password
-(default `teacher123`, changeable from the dashboard's **⚙️ הגדרות** tab).
+(default `teacher123`, changeable from the dashboard's **⚙️ Settings** tab).
 There is no per-student or global help-level setting anymore; help level is
 fully automatic (see above).
 
 ---
 
-## Teacher dashboard (`teacher_app.py`)
+## Teacher dashboard (`pages/1_Teacher_Dashboard.py`)
 
 Password-gated (`teacher_config.json`'s `teacher_password`). Three tabs:
 
-- **⚙️ הגדרות** — change the dashboard password, and a static reference table
-  of scenario IDs.
-- **👥 סטודנטים** — a table of every student who's logged in (scenarios
+- **⚙️ Settings** — change the dashboard password, and a static reference
+  table of scenario IDs.
+- **👥 Students** — a table of every student who's logged in (scenarios
   completed, average/individual scores, current scenario, active/done
   status), a per-student view of completed scenario IDs, and their full
   session history (scenario, hints used, score, date).
-- **📋 לוגים** — browse and open the raw `Results/*.txt` transcripts,
+- **📋 Logs** — browse and open the raw `Results/*.txt` transcripts,
   filterable by student ID.
 
 ---
@@ -263,30 +267,38 @@ Password-gated (`teacher_config.json`'s `teacher_password`). Three tabs:
 **Prerequisites:**
 - Python 3.10+ with the packages in `requirements.txt`:
   `pip install -r requirements.txt`
-- [Ollama](https://ollama.com) installed and running locally, with the model
-  pulled: `ollama pull qwen2.5-coder:7b` (the model name is hardcoded in
-  `production_sim/graph.py`). Inference is CPU-bound unless your machine has
-  a GPU Ollama can use — expect noticeably slower tutor replies on
-  CPU-only hardware.
+- A free [Groq](https://console.groq.com) API key, set as `GROQ_API_KEY` in
+  a `.env` file at the repo root (`GROQ_API_KEY=gsk_...`). The model name is
+  hardcoded in `production_sim/graph.py` / `production_sim/agents.py`.
 - `gcc` and `g++` on `PATH` (needed for the auto-grader).
 
-**Run the student app:**
+**Run it:**
 ```bash
 streamlit run student_app.py
 ```
 or double-click `run_app.command` (macOS; it hardcodes an Anaconda Python
-path — edit it if your `streamlit` lives elsewhere).
+path — edit it if your `streamlit` lives elsewhere). This single command
+serves both pages — the Teacher Dashboard is reachable from the sidebar nav,
+no separate process or port needed.
 
-**Run the teacher dashboard** (on a different port, since both are Streamlit
-apps and can't share one):
-```bash
-streamlit run teacher_app.py --server.port 8502
-```
+### Deploying (Streamlit Community Cloud, free)
 
-A `.env` file with `OPENAI_API_KEY` exists in the repo but **isn't read by
-any code** — the tutor and evaluator both run entirely on the local Ollama
-model. It's a leftover from an earlier design and safe to ignore (or
-delete) unless you plan to wire in a hosted model later.
+1. Push this repo to GitHub (keep it **private** — `production_sim/scenarios.py`
+   and `auto_tester.py` contain reference solutions/test harnesses students
+   shouldn't see). `.env` is already gitignored — never commit it.
+2. On [share.streamlit.io](https://share.streamlit.io), deploy a new app from
+   that repo with **`student_app.py`** as the main file. `packages.txt`
+   (installs `gcc`/`g++`) and `requirements.txt` are picked up automatically.
+3. In the app's **Settings → Secrets**, add:
+   ```toml
+   GROQ_API_KEY = "gsk_..."
+   ```
+   (`app_shared.py` bridges `st.secrets` into the environment automatically.)
+
+Because there's no database, `sessions.json` and `Results/` live on the
+deployed container's disk — they persist across normal usage but reset on a
+redeploy or a full container restart. Fine for a single exam window; not a
+durable long-term store.
 
 ---
 

@@ -9,7 +9,7 @@ class CodingTutorSim:
         self.student_id = student_id
         self.help_level = help_level
         self.completed_scenarios = completed_scenarios or []
-        self.nodes = AgentNodes(model_name="qwen2.5-coder:7b")
+        self.nodes = AgentNodes(model_name="openai/gpt-oss-120b")
         self.scenario_manager = ScenarioManager()
         self.workflow = StateGraph(TutorState)
         self._build_graph()

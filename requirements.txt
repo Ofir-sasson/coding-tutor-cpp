@@ -1,7 +1,8 @@
 # UI
 streamlit>=1.30.0
 
-# LLM orchestration — local Ollama model via LangChain, wired up as a LangGraph
+# LLM orchestration — Groq-hosted model via LangChain, wired up as a LangGraph
 langchain-core>=0.2.0
-langchain-ollama>=0.2.0
+langchain-groq>=0.2.0
 langgraph>=0.0.20
+python-dotenv>=1.0.0

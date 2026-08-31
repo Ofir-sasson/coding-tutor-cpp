@@ -12,7 +12,7 @@ from typing import Tuple
 def check_syntax(code: str, language: str = "c", setup: str = "") -> Tuple[bool, str]:
     """
     Fast syntax-only check (no linking, no execution) — lets a student catch
-    typos/syntax mistakes before spending a full "בדוק קוד" attempt on them.
+    typos/syntax mistakes before spending a full "Run Code" attempt on them.
     """
     blocks = [b.strip() for b in [setup, code] if b.strip()]
     combined = "\n\n".join(blocks)
@@ -32,17 +32,17 @@ def check_syntax(code: str, language: str = "c", setup: str = "") -> Tuple[bool,
             capture_output=True, text=True, timeout=15,
         )
         if proc.returncode == 0:
-            return True, "✅ אין שגיאות תחביר!"
+            return True, "✅ No syntax errors!"
 
         err = proc.stderr.strip().replace(src_path, "<student_code>")
-        return False, f"**שגיאות תחביר:**\n```\n{err}\n```"
+        return False, f"**Syntax errors:**\n```\n{err}\n```"
 
     except subprocess.TimeoutExpired:
-        return False, "⏱️ בדיקת התחביר ארכה זמן רב מדי."
+        return False, "⏱️ Syntax check took too long."
     except FileNotFoundError:
-        return False, f"⚠️ `{compiler}` לא נמצא במערכת. יש לוודא שמותקן."
+        return False, f"⚠️ `{compiler}` not found on the system. Make sure it's installed."
     except Exception as e:
-        return False, f"⚠️ שגיאה: {e}"
+        return False, f"⚠️ Error: {e}"
     finally:
         if os.path.exists(src_path):
             try:
@@ -84,7 +84,7 @@ def auto_test(student_code: str, part: dict, timeout: int = 10) -> Tuple[bool, s
         )
         if compile_proc.returncode != 0:
             err = compile_proc.stderr.strip().replace(src_path, "<student_code>")
-            return False, f"**שגיאת קומפילציה:**\n```\n{err}\n```"
+            return False, f"**Compilation error:**\n```\n{err}\n```"
 
         run_proc = subprocess.run(
             [exe_path], capture_output=True, text=True, timeout=timeout,
@@ -93,23 +93,23 @@ def auto_test(student_code: str, part: dict, timeout: int = 10) -> Tuple[bool, s
         stderr = run_proc.stderr.strip()
 
         if "ALL_PASS" in stdout:
-            return True, "✅ כל הבדיקות עברו בהצלחה!"
+            return True, "✅ All tests passed successfully!"
 
         lines = []
         if stderr:
-            lines.append(f"**בדיקות שנכשלו:**\n```\n{stderr}\n```")
+            lines.append(f"**Failed tests:**\n```\n{stderr}\n```")
         if stdout:
-            lines.append(f"**פלט:**\n```\n{stdout}\n```")
+            lines.append(f"**Output:**\n```\n{stdout}\n```")
         if not lines:
-            lines.append("הבדיקות לא עברו — נסה שוב.")
+            lines.append("Tests did not pass — try again.")
         return False, "\n".join(lines)
 
     except subprocess.TimeoutExpired:
-        return False, "⏱️ **timeout** — הקוד לא סיים לרוץ. בדוק לולאות אינסופיות."
+        return False, "⏱️ **timeout** — the code did not finish running. Check for infinite loops."
     except FileNotFoundError:
-        return False, f"⚠️ `{compiler}` לא נמצא במערכת. יש לוודא שמותקן."
+        return False, f"⚠️ `{compiler}` not found on the system. Make sure it's installed."
     except Exception as e:
-        return False, f"⚠️ שגיאה: {e}"
+        return False, f"⚠️ Error: {e}"
     finally:
         for p in [src_path, exe_path]:
             if os.path.exists(p):

@@ -87,7 +87,7 @@ def screen_id_entry():
     )
     st.markdown(
         "<p style='text-align:center;color:gray'>"
-        "סביבת בחינה מבוססת AI | המכללה האקדמית להנדסה ירושלים"
+        "AI-based exam environment | Jerusalem College of Engineering"
         "</p>",
         unsafe_allow_html=True,
     )
@@ -95,10 +95,10 @@ def screen_id_entry():
 
     col = st.columns([1, 2, 1])[1]
     with col:
-        student_id = st.text_input("הזן מספר תעודת זהות:", key="id_input")
-        if st.button("התחל בחינה", type="primary", use_container_width=True):
+        student_id = st.text_input("Enter your ID number:", key="id_input")
+        if st.button("Start Exam", type="primary", use_container_width=True):
             if student_id.strip():
-                with st.spinner("טוען מטלה..."):
+                with st.spinner("Loading task..."):
                     app, nodes, state, chat_msgs = start_student_session(student_id.strip())
                 st.session_state.graph_app = app
                 st.session_state.agent_nodes = nodes
@@ -110,7 +110,7 @@ def screen_id_entry():
                 _reset_part_state()
                 st.rerun()
             else:
-                st.warning("נא להזין מספר תעודת זהות.")
+                st.warning("Please enter your ID number.")
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -118,26 +118,26 @@ def screen_id_entry():
 def render_sidebar(gs, is_done):
     render_dark_mode_toggle()
     with st.sidebar:
-        st.markdown(f"**סטודנט:** `{st.session_state.student_id}`")
+        st.markdown(f"**Student:** `{st.session_state.student_id}`")
 
         if gs:
             current_level = gs.get("help_level", 1)
-            st.markdown(f"**רמת עזרה נוכחית:** {current_level} – {LEVEL_LABELS.get(current_level, '?')}")
+            st.markdown(f"**Current help level:** {current_level} – {LEVEL_LABELS.get(current_level, '?')}")
             st.caption(
-                "כל שאלה חדשה מתחילה ברמה 1. אם תגידו שלא הבנתם או תבקשו עוד עזרה, "
-                "הרמה תעלה אוטומטית עבור אותה שאלה בלבד."
+                "Every new question starts at level 1. If you say you didn't understand or "
+                "ask for more help, the level will automatically rise for that question only."
             )
             completed_count = len(get_completed_scenarios(st.session_state.student_id))
             if completed_count:
-                st.markdown(f"**שאלות שהושלמו:** {completed_count}")
-            st.markdown(f"**רמזים:** {gs.get('hint_count', 0)}")
-            phase_map = {"chat": "💬 שיחה", "evaluation": "🔍 הערכה", "done": "🏁 הסתיים"}
-            st.markdown(f"**שלב:** {phase_map.get(gs.get('current_phase', 'chat'), '')}")
+                st.markdown(f"**Completed questions:** {completed_count}")
+            st.markdown(f"**Hints:** {gs.get('hint_count', 0)}")
+            phase_map = {"chat": "💬 Chat", "evaluation": "🔍 Evaluation", "done": "🏁 Done"}
+            st.markdown(f"**Phase:** {phase_map.get(gs.get('current_phase', 'chat'), '')}")
             if is_done:
-                st.markdown(f"**ציון:** {gs.get('score', 0)}/100")
+                st.markdown(f"**Score:** {gs.get('score', 0)}/100")
 
         st.markdown("---")
-        if st.button("🚪 סיום וסגירה", use_container_width=True):
+        if st.button("🚪 Finish & Close", use_container_width=True):
             for k in ["started", "graph_state", "graph_app", "student_id", "log_saved"]:
                 st.session_state[k] = False if isinstance(st.session_state.get(k), bool) else None
             st.session_state.chat_history = []
@@ -148,7 +148,7 @@ def render_sidebar(gs, is_done):
 # ── Chat column (shared) ──────────────────────────────────────────────────────
 
 def render_chat_column(gs):
-    st.markdown("#### 💬 שאל את המורה")
+    st.markdown("#### 💬 Ask the Tutor")
     with st.container(height=370):
         for msg in st.session_state.chat_history:
             with st.chat_message(msg["role"]):
@@ -158,11 +158,11 @@ def render_chat_column(gs):
         c_inp, c_btn = st.columns([5, 1])
         with c_inp:
             prompt = st.text_input(
-                "", placeholder="שאל שאלה על המטלה...",
+                "Question", placeholder="Ask a question about the task...",
                 label_visibility="collapsed",
             )
         with c_btn:
-            send = st.form_submit_button("שלח", use_container_width=True)
+            send = st.form_submit_button("Send", use_container_width=True)
 
     if send and prompt.strip():
         st.session_state.chat_history.append({"role": "user", "content": prompt})
@@ -187,7 +187,7 @@ def render_chat_column(gs):
                 st.session_state.chat_history.append({
                     "role": "assistant",
                     "content": (
-                        f"ℹ️ **עולה לרמה {level} – {LEVEL_LABELS[level]} עבור השאלה הזו.**  \n"
+                        f"ℹ️ **Escalating to level {level} – {LEVEL_LABELS[level]} for this question.**  \n"
                         f"{LEVEL_DESCRIPTIONS[level]}"
                     ),
                 })
@@ -201,7 +201,7 @@ def render_chat_column(gs):
                     # to filter out leaked code), so write_stream would leave the
                     # bubble blank the whole time — looked like the chat froze.
                     # Show a spinner instead so it's clear it's working.
-                    with st.spinner("💭 חושב על תשובה..."):
+                    with st.spinner("💭 Thinking of an answer..."):
                         response_text = "".join(nodes.stream_tutor_response(gs))
                     st.markdown(response_text)
             gs["hint_count"] = gs.get("hint_count", 0) + 1
@@ -217,7 +217,7 @@ def render_chat_column(gs):
                 {"hint_count": gs.get("hint_count", 0)},
             )
         else:
-            with st.spinner("חושב..."):
+            with st.spinner("Thinking..."):
                 new_state, new_msgs = run_graph(st.session_state.graph_app, gs)
             st.session_state.graph_state = new_state
             update_session_current(
@@ -250,10 +250,10 @@ def _finish_multipart(gs, scenario, parts):
         gs["current_phase"] = "done"
         st.session_state.graph_state = gs
 
-    st.success(f"🏆 כל החלקים עברו! ציון סופי: **{score}/100**")
+    st.success(f"🏆 All parts passed! Final score: **{score}/100**")
     st.markdown(score_breakdown_md(hints_per_level, failed_runs, passed=True))
-    st.info("ניתן לסגור את החלון או ללחוץ 'סיום וסגירה'.")
-    st.markdown("### שיחת הצ'אט")
+    st.info("You can close the window or click 'Finish & Close'.")
+    st.markdown("### Chat Transcript")
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -332,7 +332,7 @@ def screen_exam_multipart(gs, scenario, parts):
         if p["part_id"] in parts_passed and st.session_state.get(f"code_part_{i}", "").strip()
     ]
     if reviewable:
-        with st.expander("📜 היסטוריית חלקים שהושלמו"):
+        with st.expander("📜 History of Completed Parts"):
             for i, p in reviewable:
                 st.markdown(f"**{p['title']}**")
                 st.code(
@@ -341,22 +341,22 @@ def screen_exam_multipart(gs, scenario, parts):
                 )
 
     # ── Part header ──
-    st.markdown(f"#### חלק {current_idx + 1}/{num_parts}: `{current_part['title']}`")
-    with st.expander("📄 תיאור המשימה", expanded=True):
+    st.markdown(f"#### Part {current_idx + 1}/{num_parts}: `{current_part['title']}`")
+    with st.expander("📄 Task Description", expanded=True):
         st.markdown(current_part["description"])
 
     # ── Two-column layout ──
     col_code, col_chat = st.columns([1, 1], gap="medium")
 
     with col_code:
-        st.markdown("#### ✏️ עורך קוד")
+        st.markdown("#### ✏️ Code Editor")
         placeholder_text = (
             f"// Implement: {current_part['title']}\n"
             "// Do NOT write main() — the system tests automatically.\n\n"
         )
         _part_code_key = f"code_part_{current_idx}"
         code = st.text_area(
-            label="",
+            label="Code",
             height=_code_editor_height(st.session_state.get(_part_code_key, "")),
             key=_part_code_key,
             placeholder=placeholder_text,
@@ -373,20 +373,20 @@ def screen_exam_multipart(gs, scenario, parts):
 
         col_syntax, col_run = st.columns(2)
         with col_syntax:
-            syntax_clicked = st.button("🔎 בדוק תחביר בלבד", use_container_width=True)
+            syntax_clicked = st.button("🔎 Check Syntax Only", use_container_width=True)
         with col_run:
-            run_clicked = st.button("▶️ בדוק קוד", type="primary", use_container_width=True)
+            run_clicked = st.button("▶️ Run Code", type="primary", use_container_width=True)
 
         if syntax_clicked:
             if code.strip():
-                with st.spinner("בודק תחביר..."):
+                with st.spinner("Checking syntax..."):
                     syn_passed, syn_feedback = check_syntax(
                         code, current_part.get("language", "c"), current_part.get("setup", "")
                     )
                 st.session_state.part_test_result = {"passed": syn_passed, "feedback": syn_feedback}
                 st.rerun()
             else:
-                st.warning("הקוד ריק!")
+                st.warning("Code is empty!")
 
         if run_clicked:
             if code.strip():
@@ -401,7 +401,7 @@ def screen_exam_multipart(gs, scenario, parts):
                     full_student_code = prev_code + "\n\n" + code
                 else:
                     full_student_code = code
-                with st.spinner("מקמפל ומריץ בדיקות..."):
+                with st.spinner("Compiling and running tests..."):
                     passed, feedback = auto_test(full_student_code, current_part)
                 st.session_state.part_test_result = {"passed": passed, "feedback": feedback}
 
@@ -450,8 +450,8 @@ def screen_exam_multipart(gs, scenario, parts):
                         st.session_state.chat_history.append({
                             "role": "assistant",
                             "content": (
-                                f"✅ **חלק {current_idx + 1} עבר!** (`{current_part['title']}`)\n\n"
-                                f"עכשיו עובדים על חלק {next_idx + 1}: **`{next_part['title']}`** — ראה את תיאור המשימה למעלה. שאל אותי אם צריך עזרה!"
+                                f"✅ **Part {current_idx + 1} passed!** (`{current_part['title']}`)\n\n"
+                                f"Now working on part {next_idx + 1}: **`{next_part['title']}`** — see the task description above. Ask me if you need help!"
                             ),
                         })
                         update_session_current(
@@ -460,7 +460,7 @@ def screen_exam_multipart(gs, scenario, parts):
                         )
                 st.rerun()
             else:
-                st.warning("הקוד ריק!")
+                st.warning("Code is empty!")
 
     with col_chat:
         render_chat_column(gs)
@@ -485,24 +485,24 @@ def screen_exam_single(gs, scenario):
             )
             st.session_state.log_saved = True
 
-        st.success(f"🏆 הגשה הושלמה! ציון: {gs.get('score', 0)}/100")
-        st.info("ניתן לסגור את החלון או ללחוץ 'סיום וסגירה' בסרגל הצד.")
-        st.markdown("### שיחת הצ'אט")
+        st.success(f"🏆 Submission complete! Score: {gs.get('score', 0)}/100")
+        st.info("You can close the window or click 'Finish & Close' in the sidebar.")
+        st.markdown("### Chat Transcript")
         for msg in st.session_state.chat_history:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
         st.stop()
 
     st.markdown(f"### 📋 {scenario.get('name', '')}")
-    with st.expander("📄 תיאור המשימה", expanded=True):
+    with st.expander("📄 Task Description", expanded=True):
         st.markdown(scenario.get("dev_requirement", ""))
 
     col_code, col_chat = st.columns([1, 1], gap="medium")
 
     with col_code:
-        st.markdown("#### ✏️ עורך קוד")
+        st.markdown("#### ✏️ Code Editor")
         code = st.text_area(
-            label="",
+            label="Code",
             height=_code_editor_height(st.session_state.get("live_code", ""), minimum=430),
             key="live_code",
             placeholder=SINGLE_PLACEHOLDER,
@@ -518,18 +518,18 @@ def screen_exam_single(gs, scenario):
 
         col_syntax, col_submit = st.columns(2)
         with col_syntax:
-            syntax_clicked = st.button("🔎 בדוק תחביר", use_container_width=True)
+            syntax_clicked = st.button("🔎 Check Syntax", use_container_width=True)
         with col_submit:
-            submit_clicked = st.button("✅ הגש קוד", type="primary", use_container_width=True)
+            submit_clicked = st.button("✅ Submit Code", type="primary", use_container_width=True)
 
         if syntax_clicked:
             if code.strip():
-                with st.spinner("בודק תחביר..."):
+                with st.spinner("Checking syntax..."):
                     syn_passed, syn_feedback = check_syntax(code, "c")
                 st.session_state.single_syntax_result = {"passed": syn_passed, "feedback": syn_feedback}
                 st.rerun()
             else:
-                st.warning("הקוד ריק!")
+                st.warning("Code is empty!")
 
         if submit_clicked:
             if code.strip():
@@ -539,14 +539,14 @@ def screen_exam_single(gs, scenario):
                 gs["submitted_code"] = code
                 gs["current_phase"] = "evaluation"
                 gs["messages"] = gs.get("messages", []) + [HumanMessage(content=code)]
-                with st.spinner("מעריך את הקוד..."):
+                with st.spinner("Evaluating the code..."):
                     new_state, new_msgs = run_graph(st.session_state.graph_app, gs)
                 st.session_state.graph_state = new_state
                 for msg in new_msgs:
                     st.session_state.chat_history.append({"role": "assistant", "content": msg.content})
                 st.rerun()
             else:
-                st.warning("הקוד ריק!")
+                st.warning("Code is empty!")
 
     with col_chat:
         render_chat_column(gs)
@@ -563,7 +563,7 @@ def screen_exam():
     st.title("🎓 Coding Tutor – C/C++")
 
     if not gs:
-        st.error("שגיאה: אין מצב גרף. נסה לרענן.")
+        st.error("Error: no graph state. Try refreshing.")
         return
 
     scenario = gs.get("scenario_data", {})

@@ -1,11 +1,24 @@
-"""Shared helpers used by both student_app.py and teacher_app.py."""
+"""Shared helpers used by both student_app.py and pages/1_Teacher_Dashboard.py."""
 
 import os
 import re
 import json
 from datetime import datetime
+from dotenv import load_dotenv
 import streamlit as st
 from production_sim import CodingTutorSim
+
+load_dotenv()
+
+# On Streamlit Community Cloud there's no .env file — secrets are set via the
+# app's "Secrets" panel instead, exposed as st.secrets rather than env vars.
+# Bridge them into os.environ so langchain_groq (which reads GROQ_API_KEY from
+# the environment) works the same way locally and when deployed.
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        os.environ.setdefault("GROQ_API_KEY", st.secrets["GROQ_API_KEY"])
+except FileNotFoundError:
+    pass
 
 CONFIG_FILE = "teacher_config.json"
 SESSIONS_FILE = "sessions.json"
@@ -13,9 +26,9 @@ DEFAULT_PASSWORD = "teacher123"
 
 LEVEL_LABELS = {1: "Strict", 2: "Guided", 3: "Supported"}
 LEVEL_DESCRIPTIONS = {
-    1: "שאלות מנחות בלבד – ללא תשובות ישירות",
-    2: "רמזים קונספטואליים – ללא קוד",
-    3: "הסבר מלא עם דוגמאות קוד",
+    1: "Guiding questions only – no direct answers",
+    2: "Conceptual hints – no code",
+    3: "Full explanation with code examples",
 }
 
 # ── Dark mode ────────────────────────────────────────────────────────────────
@@ -77,7 +90,7 @@ LAYOUT_CSS = """
 def render_dark_mode_toggle():
     """Sidebar toggle for a runtime dark theme; injects CSS overrides when on."""
     st.markdown(LAYOUT_CSS, unsafe_allow_html=True)
-    dark = st.sidebar.toggle("🌙 מצב כהה", key="dark_mode")
+    dark = st.sidebar.toggle("🌙 Dark mode", key="dark_mode")
     if dark:
         st.markdown(DARK_CSS, unsafe_allow_html=True)
 

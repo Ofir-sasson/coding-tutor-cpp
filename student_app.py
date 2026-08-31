@@ -166,9 +166,16 @@ def render_chat_column(gs):
 
     if send and prompt.strip():
         st.session_state.chat_history.append({"role": "user", "content": prompt})
-        # Build full conversation history from chat_history (source of truth)
+        # Build full conversation history from chat_history (source of truth),
+        # skipping UI-only notices (level-escalation banners, part-passed
+        # announcements) — they aren't real tutor answers, and feeding them in
+        # confuses compute_question_level's same-question/new-question read of
+        # "what did the tutor just say" (e.g. a part-passed notice mentioning
+        # the next part's topic reads as still-relevant context to the model).
         lc_msgs = []
         for m in st.session_state.chat_history[-8:]:
+            if m.get("kind") == "notice":
+                continue
             if m["role"] == "user":
                 lc_msgs.append(HumanMessage(content=m["content"]))
             else:
@@ -190,6 +197,7 @@ def render_chat_column(gs):
                         f"ℹ️ **Escalating to level {level} – {LEVEL_LABELS[level]} for this question.**  \n"
                         f"{LEVEL_DESCRIPTIONS[level]}"
                     ),
+                    "kind": "notice",
                 })
 
             with st.chat_message("assistant"):
@@ -453,6 +461,7 @@ def screen_exam_multipart(gs, scenario, parts):
                                 f"✅ **Part {current_idx + 1} passed!** (`{current_part['title']}`)\n\n"
                                 f"Now working on part {next_idx + 1}: **`{next_part['title']}`** — see the task description above. Ask me if you need help!"
                             ),
+                            "kind": "notice",
                         })
                         update_session_current(
                             st.session_state.student_id,
